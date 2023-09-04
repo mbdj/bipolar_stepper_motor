@@ -11,7 +11,7 @@ package Bipolar_Stepper_Motor_Package is
 
    type Bipolar_Stepper_Motor is tagged limited private;
    type Type_Direction is (Clockwise, Anti_Clockwise);
-   type Type_Micro_Stepping is (Full_Step);  -- to be completed later Half_Step, 1_4_Step, 1_8_Step, 1_16_Step
+   type Type_Micro_Stepping is (Full_Step, Half_Step, Stepping_1_4_Step, Stepping_1_8_Step, Stepping_1_16_Step);
 
    procedure Initialize (Motor                   : in out Bipolar_Stepper_Motor;
                          Step_Pin                : in STM32.GPIO.GPIO_Point;

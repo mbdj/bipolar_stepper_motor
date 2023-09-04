@@ -82,7 +82,12 @@ package body Bipolar_Stepper_Motor_Package is
                          Direction            : in Type_Direction := Clockwise) is
    begin
 
-      Motor.Step (Number_Of_Steps => Positive ( Float (Steps_Per_Revolution * (if Motor.Microstepping = Full_Step then 1 else 2)) * Float (Angle) / 360.0),
+      Motor.Step (Number_Of_Steps => Positive ( Float (Steps_Per_Revolution * (case Motor.Microstepping is
+                     when Full_Step => 1,
+                     when Half_Step => 2,
+                     when Stepping_1_4_Step  => 4,
+                     when Stepping_1_8_Step  => 8,
+                     when Stepping_1_16_Step => 16)) * Float (Angle) / 360.0),
                   Direction       => Direction);
 
    end;
