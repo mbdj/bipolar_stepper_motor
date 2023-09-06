@@ -12,8 +12,7 @@ package body Stepper_Motor is
    begin
 
       Moteur.Initialize (Step_Pin      => STM32.Device.PA0,
-                         Dir_Pin       => STM32.Device.PA1,
-                         Microstepping => Full_Step);
+                         Dir_Pin       => STM32.Device.PA1);
 
       loop
          Moteur.Step (Number_Of_Steps => 200,
@@ -37,6 +36,13 @@ package body Stepper_Motor is
          Moteur.Step_Angle (Angle     => 180.0,
                             Direction => Anti_Clockwise);
          delay (1.0);
+
+         Moteur.Step_Angle (Angle => 180.0,
+                            Rpm   => 30.0);
+         delay (1.0);
+
+         Moteur.Step_Loop (Rpm       => 100.0,
+                           Direction => Anti_Clockwise);
       end loop;
 
    end Motor_Task;
