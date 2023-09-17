@@ -1,0 +1,35 @@
+with "C:\Users\mbdj\Dev\AdaLib\Ada_Drivers_Library-master\boards\nucleo_f446re\nucleo_f446re_full.gpr";
+with "config/bipolar_stepper_motor_config.gpr";
+
+project Bipolar_Stepper_Motor is
+
+   for Source_Dirs use ("C:/Users/mbdj/Dev/Ada/STM32/bipolar_stepper_motor/src", "C:/Users/mbdj/Dev/Ada/STM32/bipolar_stepper_motor/config");
+   for Object_Dir use "obj/" & Bipolar_Stepper_Motor_Config.Build_Profile;
+   for Create_Missing_Dirs use "True";
+   for Exec_Dir use "bin";
+   for Main use ("bipolar_stepper_motor.adb");
+   for Target use "arm-eabi";
+   for Runtime ("ada") use "embedded-stm32f4";
+
+   package Compiler is
+      for Default_Switches ("ada") use ("-Og", "-ffunction-sections", "-fdata-sections", "-g", "-gnat2020", "-gnatVa", "-gnatwa.X", "-gnatyaABb-defhiklM79nOprStux");
+   end Compiler;
+
+   package Binder is
+      for Switches ("ada") use ("-Es"); --  Symbolic traceback
+   end Binder;
+
+   package Install is
+      for Artifacts (".") use ("share");
+   end Install;
+
+   package Ide is
+      for Vcs_Kind use "git";
+      for Vcs_Repository_Root use ".";
+      for Connection_Tool use "st-util";
+      for Program_Host use "localhost:4242";
+      for Communication_Protocol use "remote";
+   end Ide;
+
+end Bipolar_Stepper_Motor;
+
