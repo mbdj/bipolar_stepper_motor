@@ -3,13 +3,17 @@ with "config/bipolar_stepper_motor_config.gpr";
 
 project Bipolar_Stepper_Motor is
 
-   for Source_Dirs use ("C:/Users/mbdj/Dev/Ada/STM32/bipolar_stepper_motor/src", "C:/Users/mbdj/Dev/Ada/STM32/bipolar_stepper_motor/config");
+   type Build_Type is
+      ("Debug", "Production");
+   type Build_Checks_Type is
+      ("Disabled", "Enabled");
    for Object_Dir use "obj/" & Bipolar_Stepper_Motor_Config.Build_Profile;
    for Create_Missing_Dirs use "True";
    for Exec_Dir use "bin";
-   for Main use ("bipolar_stepper_motor.adb");
    for Target use "arm-eabi";
    for Runtime ("ada") use "embedded-stm32f4";
+   ADL_BUILD_CHECKS : Build_Checks_Type := external ("ADL_BUILD_CHECKS");
+   ADL_BUILD : Build_Type := external ("ADL_BUILD");
 
    package Compiler is
       for Default_Switches ("ada") use ("-Og", "-ffunction-sections", "-fdata-sections", "-g", "-gnat2020", "-gnatVa", "-gnatwa.X", "-gnatyaABb-defhiklM79nOprStux");
@@ -30,6 +34,26 @@ project Bipolar_Stepper_Motor is
       for Program_Host use "localhost:4242";
       for Communication_Protocol use "remote";
    end Ide;
+
+   case ADL_BUILD_CHECKS is
+
+      when "Disabled" =>
+
+         case ADL_BUILD is
+
+            when "Debug" =>
+               for Source_Dirs use ("C:/Users/mbdj/Dev/Ada/STM32/bipolar_stepper_motor/src", "C:/Users/mbdj/Dev/Ada/STM32/bipolar_stepper_motor/config");
+               for Main use ("stepper_motor_task.adb");
+
+            when "Production" =>
+               for Source_Dirs use ("C:/Users/mbdj/Dev/Ada/STM32/bipolar_stepper_motor/src", "C:/Users/mbdj/Dev/Ada/STM32/bipolar_stepper_motor/config");
+               for Main use ("stepper_motor_task.adb");
+         end case;
+
+      when "Enabled" =>
+         for Source_Dirs use ("C:/Users/mbdj/Dev/Ada/STM32/bipolar_stepper_motor/src", "C:/Users/mbdj/Dev/Ada/STM32/bipolar_stepper_motor/config");
+         for Main use ("stepper_motor_task.adb");
+   end case;
 
 end Bipolar_Stepper_Motor;
 

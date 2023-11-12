@@ -15,34 +15,30 @@ package body Stepper_Motor is
                          Dir_Pin       => STM32.Device.PA1);
 
       loop
-         Moteur.Step (Number_Of_Steps => 200,
-                      Direction       => Clockwise);
+         Moteur.Step (Number_Of_Steps => 200);
          delay (1.0);
 
-         Moteur.Step (Number_Of_Steps => 100,
-                      Direction       => Anti_Clockwise);
+         Moteur.Step (Number_Of_Steps => 100);
          delay (1.0);
 
          Moteur.Step_Angle (Angle     => 90.0);
          delay (1.0);
 
-         Moteur.Step_Angle (Angle     => 180.0,
-                            Direction => Anti_Clockwise);
+         Moteur.Step_Angle (Angle     => 180.0);
          delay (1.0);
 
          Moteur.Step_Angle (Angle     => 360.0);
          delay (1.0);
 
-         Moteur.Step_Angle (Angle     => 180.0,
-                            Direction => Anti_Clockwise);
+         Moteur.Step_Angle (Angle     => 180.0);
+         Moteur.Set_Direction (Direction => Anti_Clockwise);
          delay (1.0);
 
          Moteur.Step_Angle (Angle => 180.0,
                             Rpm   => 30.0);
          delay (1.0);
 
-         Moteur.Step_Loop (Rpm       => 100.0,
-                           Direction => Anti_Clockwise);
+         --  Moteur.Step_Loop (Rpm => 100.0);
       end loop;
 
    end Motor_Task;

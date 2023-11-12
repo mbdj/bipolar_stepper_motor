@@ -10,8 +10,9 @@ package body Bipolar_Stepper_Motor_Package is
                          Step_Pin                : in STM32.GPIO.GPIO_Point;
                          Dir_Pin                 : in STM32.GPIO.GPIO_Point;
                          Microstepping           : in Type_Micro_Stepping := Full_Step;
-                         Delay_Sec_Between_Steps : in Standard.Duration := 0.00001;
-                         Steps_Per_Revolution    : in Positive := 200) is
+                         Delay_Sec_Between_Steps : in Standard.Duration := 0.00001;  --  minimum delay between step elsewhere step don't run (10us NEMA 17)
+                         Steps_Per_Revolution    : in Positive := 200;
+                         Direction               : in Type_Direction := Clockwise) is --  NEMA 17
 
       Pins_Motor : constant STM32.GPIO.GPIO_Points := (Step_Pin , Dir_Pin);
 
@@ -21,6 +22,7 @@ package body Bipolar_Stepper_Motor_Package is
       Motor.Microstepping := Microstepping;
       Motor.Delay_Sec_Between_Steps := Delay_Sec_Between_Steps;
       Motor.Steps_Per_Revolution := Steps_Per_Revolution;
+      Motor.Direction := Direction;
 
       STM32.Device.Enable_Clock (Pins_Motor);
 
@@ -33,9 +35,11 @@ package body Bipolar_Stepper_Motor_Package is
 
    end;
 
-   procedure Set_Direction (Motor             : in out Bipolar_Stepper_Motor;
-                            Direction         : in Type_Direction := Clockwise) is
+   procedure Set_Direction (Motor     : in out Bipolar_Stepper_Motor;
+                            Direction : in Type_Direction) is
    begin
+
+      Motor.Direction := Direction;
 
       if Direction = Clockwise then
          Motor.Dir_Pin.Set;
@@ -49,11 +53,8 @@ package body Bipolar_Stepper_Motor_Package is
    -- Step --
    ----------
    --  rotation of one step
-   procedure Step (Motor     : in out Bipolar_Stepper_Motor;
-                   Direction : in Type_Direction := Clockwise) is
+   procedure Step (Motor     : in out Bipolar_Stepper_Motor) is
    begin
-
-      Motor.Set_Direction (Direction);
 
       Motor.Step_Pin.Set;
       Motor.Step_Pin.Clear;
@@ -63,11 +64,8 @@ package body Bipolar_Stepper_Motor_Package is
 
    --  rotation of multiple steps
    procedure Step (Motor            : in out Bipolar_Stepper_Motor;
-                   Number_Of_Steps  : in Positive;
-                   Direction        : in Type_Direction := Clockwise) is
+                   Number_Of_Steps  : in Positive) is
    begin
-
-      Motor.Set_Direction (Direction);
 
       for Index in 1 .. Number_Of_Steps loop
          Motor.Step_Pin.Set;
@@ -80,8 +78,7 @@ package body Bipolar_Stepper_Motor_Package is
    --  rotation of multiple steps
    procedure Step (Motor            : in out Bipolar_Stepper_Motor;
                    Number_Of_Steps  : in Positive;
-                   Rpm              : in Float;
-                   Direction        : in Type_Direction := Clockwise) is
+                   Rpm              : in Float) is
 
       Period       : constant Ada.Real_Time.Time_Span := Ada.Real_Time.Milliseconds (Integer (60000.0 /
                                                                                      (Float (Motor.Steps_Per_Revolution
@@ -95,9 +92,6 @@ package body Bipolar_Stepper_Motor_Package is
                                                                                     );
       Next_Release : Ada.Real_Time.Time;
    begin
-
-      Motor.Set_Direction (Direction);
-
 
       Next_Release := Ada.Real_Time.Clock;
 
@@ -112,43 +106,38 @@ package body Bipolar_Stepper_Motor_Package is
    end;
 
 
-   procedure Step_Loop (Motor            : in out Bipolar_Stepper_Motor;
-                        Rpm              : in Float;
-                        Direction        : in Type_Direction := Clockwise) is
-
-      Period       : constant Ada.Real_Time.Time_Span := Ada.Real_Time.Milliseconds (Integer (60000.0 /
-                                                                                     (Float (Motor.Steps_Per_Revolution
-                                                                                        * (case Motor.Microstepping is
-                                                                                             when Full_Step          => 1,
-                                                                                             when Half_Step          => 2,
-                                                                                             when Stepping_1_4_Step  => 4,
-                                                                                             when Stepping_1_8_Step  => 8,
-                                                                                             when Stepping_1_16_Step => 16))
-                                                                                        * Rpm))
-                                                                                    );
-      Next_Release : Ada.Real_Time.Time;
-   begin
-
-      Motor.Set_Direction (Direction);
-
-
-      Next_Release := Ada.Real_Time.Clock;
-
-      loop
-         Motor.Step_Pin.Set;
-         Motor.Step_Pin.Clear;
-
-         Next_Release := Next_Release + Period;
-         delay until Next_Release;
-      end loop;
-
-   end;
+   --  procedure Step_Loop (Motor            : in out Bipolar_Stepper_Motor;
+   --                       Rpm              : in Float) is
+   --
+   --     Period       : constant Ada.Real_Time.Time_Span := Ada.Real_Time.Milliseconds (Integer (60000.0 /
+   --                                                                                    (Float (Motor.Steps_Per_Revolution
+   --                                                                                       * (case Motor.Microstepping is
+   --                                                                                            when Full_Step          => 1,
+   --                                                                                            when Half_Step          => 2,
+   --                                                                                            when Stepping_1_4_Step  => 4,
+   --                                                                                            when Stepping_1_8_Step  => 8,
+   --                                                                                            when Stepping_1_16_Step => 16))
+   --                                                                                       * Rpm))
+   --                                                                                   );
+   --     Next_Release : Ada.Real_Time.Time;
+   --  begin
+   --
+   --     Next_Release := Ada.Real_Time.Clock;
+   --
+   --     loop
+   --        Motor.Step_Pin.Set;
+   --        Motor.Step_Pin.Clear;
+   --
+   --        Next_Release := Next_Release + Period;
+   --        delay until Next_Release;
+   --     end loop;
+   --
+   --  end;
 
 
    --  rotation of an angle in degree
    procedure Step_Angle (Motor                : in out Bipolar_Stepper_Motor;
-                         Angle                : in Degrees ;
-                         Direction            : in Type_Direction := Clockwise) is
+                         Angle                : in Degrees) is
    begin
 
       Motor.Step (Number_Of_Steps => Positive ( Float (Motor.Steps_Per_Revolution * (case Motor.Microstepping is
@@ -156,16 +145,14 @@ package body Bipolar_Stepper_Motor_Package is
                      when Half_Step          => 2,
                      when Stepping_1_4_Step  => 4,
                      when Stepping_1_8_Step  => 8,
-                     when Stepping_1_16_Step => 16)) * Float (Angle) / 360.0),
-                  Direction       => Direction);
+                     when Stepping_1_16_Step => 16)) * Float (Angle) / 360.0));
 
    end;
 
 
    procedure Step_Angle (Motor                : in out Bipolar_Stepper_Motor;
                          Angle                : in Degrees ;
-                         Rpm                  : in Float;
-                         Direction            : in Type_Direction := Clockwise) is
+                         Rpm                  : in Float) is
    begin
 
       Motor.Step (Number_Of_Steps => Positive ( Float (Motor.Steps_Per_Revolution * (case Motor.Microstepping is
@@ -174,8 +161,7 @@ package body Bipolar_Stepper_Motor_Package is
                      when Stepping_1_4_Step  => 4,
                      when Stepping_1_8_Step  => 8,
                      when Stepping_1_16_Step => 16)) * Float (Angle) / 360.0),
-                  Rpm             => Rpm,
-                  Direction       => Direction);
+                  Rpm             => Rpm);
 
    end;
 
